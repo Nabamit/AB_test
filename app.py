@@ -187,6 +187,12 @@ ZC_COLORS = {
 
 DAYS_ORDER = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
 
+AD_TIER_BINS = [0, 2, 5, 10, 20, 50, 100, float("inf")]
+AD_TIER_LABELS = ["1-2 ads", "3-5 ads", "6-10 ads", "11-20 ads", "21-50 ads", "51-100 ads", "100+ ads"]
+
+HOUR_BINS = [-1, 5, 11, 16, 21, 24]
+HOUR_LABELS = ["Night (0-5h)", "Morning (6-11h)", "Afternoon (12-16h)", "Evening (17-21h)", "Late Night (22-23h)"]
+
 # ==============================================================================
 # 2. DATA LOADING & AUTHENTIC PREPROCESSING
 # ==============================================================================
@@ -207,14 +213,10 @@ def load_clean_dataset():
     df["group_name"] = df["test group"].map({"ad": "Treatment (ad)", "psa": "Control (psa)"})
     
     # Frequency exposure tiers
-    bins = [0, 2, 5, 10, 20, 50, 100, float("inf")]
-    labels = ["1-2 ads", "3-5 ads", "6-10 ads", "11-20 ads", "21-50 ads", "51-100 ads", "100+ ads"]
-    df["ad_tier"] = pd.cut(df["total ads"], bins=bins, labels=labels)
+    df["ad_tier"] = pd.cut(df["total ads"], bins=AD_TIER_BINS, labels=AD_TIER_LABELS)
     
     # Day part brackets
-    hour_bins = [-1, 5, 11, 16, 21, 24]
-    hour_labels = ["Night (0-5h)", "Morning (6-11h)", "Afternoon (12-16h)", "Evening (17-21h)", "Late Night (22-23h)"]
-    df["day_part"] = pd.cut(df["most ads hour"], bins=hour_bins, labels=hour_labels)
+    df["day_part"] = pd.cut(df["most ads hour"], bins=HOUR_BINS, labels=HOUR_LABELS)
     
     return df
 
@@ -727,7 +729,7 @@ elif selected_page == "Ad Frequency & Saturation":
         
     with col_fc2:
         st.markdown('<div class="chart-box"><div class="chart-box-title">Audience Distribution by Ad Tier</div>', unsafe_allow_html=True)
-        tier_totals = df["ad_tier"].value_counts().reindex(labels)
+        tier_totals = df["ad_tier"].value_counts().reindex(AD_TIER_LABELS).fillna(0)
         fig_tier_don = create_donut(
             labels=tier_totals.index.tolist(),
             values=tier_totals.values.tolist(),
